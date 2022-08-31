@@ -1,0 +1,92 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'com.google.protobuf' version '0.8.17' //plugin para incluir la compilación de gRPC, ver: https://github.com/grpc/grpc-java#generated-code
+    id 'idea' //plugins para la integración con el IDEA.
+}
+
+mainClassName = 'main'
+
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    implementation "io.javalin:javalin:4.6.0"
+    implementation "org.slf4j:slf4j-simple:1.7.36"
+    implementation group: 'org.thymeleaf', name: 'thymeleaf', version: '3.0.12.RELEASE'
+    implementation 'org.hibernate.orm:hibernate-core:6.0.2.Final'
+    implementation 'com.h2database:h2:2.1.212'
+    implementation 'com.opsmatters:bitly-java-api:1.0.4'
+    implementation 'dnsjava:dnsjava:3.5.1'
+    implementation 'commons-validator:commons-validator:1.7'
+    implementation 'org.webjars:qrcodejs:1c78ccd'
+    implementation 'org.json:json:20220320'
+
+    //Libreria para JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    //libreria para SOAP de Jetty https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-http-spi
+    implementation group: 'org.eclipse.jetty', name: 'jetty-http-spi', version: '9.4.46.v20220331'
+
+    //incluyendo las librerias de javax.ee en java 11.
+    //https://www.baeldung.com/java-soap-web-service
+    implementation "jakarta.xml.ws:jakarta.xml.ws-api:3.0.1"
+    implementation "com.sun.xml.ws:jaxws-rt:3.0.2"
+    implementation "com.sun.xml.ws:jaxws-ri:3.0.2"
+    implementation "org.glassfish.jaxb:jaxb-runtime:3.0.2"
+
+    //Librerías necesarias para para implementar gRPC y Protobuf, ver: https://github.com/grpc/grpc-java
+    implementation 'io.grpc:grpc-netty-shaded:1.39.0'
+    implementation 'io.grpc:grpc-protobuf:1.39.0'
+    implementation 'io.grpc:grpc-stub:1.39.0'
+    compileOnly 'org.apache.tomcat:annotations-api:6.0.53' // necessary for Java 9+
+
+}
+
+//Tareas para la generación del código.
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.17.2"
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.39.0'
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+    }
+
+    generatedFilesBaseDir = "$projectDir/generated"
+}
+
+//Tareas para integrar con el
+clean {
+    delete protobuf.generatedFilesBaseDir
+}
+
+idea {
+    module {
+        // proto files and generated Java files are automatically added as
+        // source dirs.
+        // If you have additional sources, add them here:
+        sourceDirs += file("src/generated");
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+run {
+    standardInput = System.in
+}
